@@ -4,4 +4,4 @@ export default function EscuelasDeFormacion() {
         <h1>Escuelas De Formacion</h1>
       </div>
     )
-}
+}  

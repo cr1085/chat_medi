@@ -1,0 +1,204 @@
+import React, { useState } from 'react';
+import 'materialize-css/dist/css/materialize.min.css';
+import M from 'materialize-css';
+
+export default function Monitorias() {
+  const [citas, setCitas] = useState([
+    { fecha: "2024-10-01", hora: "10:00 AM", estado: "Asistida" },
+    { fecha: "2024-10-02", hora: "11:00 AM", estado: "Cancelada" },
+    { fecha: "2024-10-03", hora: "12:00 PM", estado: "Asistida" },
+  ]);
+  const [selectedCita, setSelectedCita] = useState(null);
+  const [nuevaFecha, setNuevaFecha] = useState('');
+  const [nuevaHora, setNuevaHora] = useState('');
+
+  const openModal = (id) => {
+    const elem = document.getElementById(id);
+    M.Modal.init(elem).open();
+  };
+
+  const handleAgendar = () => {
+    if (nuevaFecha && nuevaHora) {
+      setCitas([...citas, { fecha: nuevaFecha, hora: nuevaHora, estado: "Agendada" }]);
+      alert(`Monitoría agendada para ${nuevaFecha} a las ${nuevaHora}.`);
+      setNuevaFecha('');
+      setNuevaHora('');
+    } else {
+      alert('Por favor, seleccione una fecha y una hora.');
+    }
+  };
+
+  const handleCancelar = () => {
+    if (selectedCita !== null) {
+      const updatedCitas = [...citas];
+      updatedCitas[selectedCita].estado = "Cancelada";
+      setCitas(updatedCitas);
+      alert(`Monitoría de ${citas[selectedCita].fecha} a las ${citas[selectedCita].hora} cancelada.`);
+    } else {
+      alert('Por favor, seleccione una monitoría para cancelar.');
+    }
+  };
+
+  const handleReprogramar = () => {
+    if (selectedCita !== null && nuevaFecha && nuevaHora) {
+      const updatedCitas = [...citas];
+      updatedCitas[selectedCita] = { ...updatedCitas[selectedCita], fecha: nuevaFecha, hora: nuevaHora };
+      setCitas(updatedCitas);
+      alert(`Monitoría reprogramada para ${nuevaFecha} a las ${nuevaHora}.`);
+      setNuevaFecha('');
+      setNuevaHora('');
+    } else {
+      alert('Por favor, complete todos los campos.');
+    }
+  };
+
+  const styles = {
+    container: {
+      padding: '20px',
+      textAlign: 'center',
+    },
+    title: {
+      fontSize: '2em',
+      marginBottom: '20px',
+    },
+    card: {
+      margin: '20px 0',
+      padding: '10px',
+      backgroundColor: '#f5f5f5',
+      borderRadius: '10px',
+      boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+      cursor: 'pointer',
+    },
+    table: {
+      width: '100%',
+      marginTop: '20px',
+      borderCollapse: 'collapse',
+    },
+    th: {
+      backgroundColor: '#2196F3',
+      color: 'white',
+      padding: '10px',
+    },
+    td: {
+      padding: '10px',
+      border: '1px solid #ddd',
+    },
+    modalContent: {
+      padding: '20px',
+    },
+  };
+
+  return (
+    <div style={styles.container}>
+      <h1 style={styles.title}>Monitorías</h1>
+
+      <div className="row">
+        <div className="col s12 m4">
+          <div style={styles.card} onClick={() => openModal('agendarModal')}>
+            <span className="card-title"><i className="fas fa-calendar-plus"></i> Agendar Monitoría</span>
+          </div>
+        </div>
+        <div className="col s12 m4">
+          <div style={styles.card} onClick={() => openModal('cancelarModal')}>
+            <span className="card-title"><i className="fas fa-calendar-times"></i> Cancelar Monitoría</span>
+          </div>
+        </div>
+        <div className="col s12 m4">
+          <div style={styles.card} onClick={() => openModal('reprogramarModal')}>
+            <span className="card-title"><i className="fas fa-calendar-edit"></i> Reprogramar Monitoría</span>
+          </div>
+        </div>
+      </div>
+
+      <h2 className="center-align">Tu Horario de Monitorías</h2>
+      <table style={styles.table}>
+        <thead>
+          <tr>
+            <th style={styles.th}>Fecha</th>
+            <th style={styles.th}>Hora</th>
+            <th style={styles.th}>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          {citas.map((cita, index) => (
+            <tr key={index}>
+              <td style={styles.td}>{cita.fecha}</td>
+              <td style={styles.td}>{cita.hora}</td>
+              <td style={styles.td}>{cita.estado}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <div id="agendarModal" className="modal">
+        <div className="modal-content" style={styles.modalContent}>
+          <h5>Seleccionar Fecha y Hora</h5>
+          <input type="date" value={nuevaFecha} onChange={(e) => setNuevaFecha(e.target.value)} />
+          <select value={nuevaHora} onChange={(e) => setNuevaHora(e.target.value)} className="browser-default">
+            <option value="" disabled selected>Seleccione una hora</option>
+            <option value="09:00 AM">09:00 AM</option>
+            <option value="10:00 AM">10:00 AM</option>
+            <option value="11:00 AM">11:00 AM</option>
+            <option value="12:00 PM">12:00 PM</option>
+            <option value="01:00 PM">01:00 PM</option>
+            <option value="02:00 PM">02:00 PM</option>
+            <option value="03:00 PM">03:00 PM</option>
+            <option value="04:00 PM">04:00 PM</option>
+          </select>
+        </div>
+        <div className="modal-footer">
+          <button className="btn black" onClick={handleAgendar}>Confirmar</button>
+          <button className="btn btn-flat modal-close">Cancelar</button>
+        </div>
+      </div>
+
+      <div id="cancelarModal" className="modal">
+        <div className="modal-content" style={styles.modalContent}>
+          <h5>Cancelar Monitoría</h5>
+          <select value={selectedCita} onChange={(e) => setSelectedCita(e.target.value)} className="browser-default">
+            <option value="" disabled selected>Seleccione una monitoría</option>
+            {citas.map((cita, index) => (
+              <option key={index} value={index}>
+                {cita.fecha} a las {cita.hora} ({cita.estado})
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="modal-footer">
+          <button className="btn black" onClick={handleCancelar}>Confirmar Cancelación</button>
+          <button className="btn btn-flat modal-close">Cancelar</button>
+        </div>
+      </div>
+
+      <div id="reprogramarModal" className="modal">
+        <div className="modal-content" style={styles.modalContent}>
+          <h5>Reprogramar Monitoría</h5>
+          <select value={selectedCita} onChange={(e) => setSelectedCita(e.target.value)} className="browser-default">
+            <option value="" disabled selected>Seleccione una monitoría</option>
+            {citas.map((cita, index) => (
+              <option key={index} value={index}>
+                {cita.fecha} a las {cita.hora} ({cita.estado})
+              </option>
+            ))}
+          </select>
+          <input type="date" value={nuevaFecha} onChange={(e) => setNuevaFecha(e.target.value)} />
+          <select value={nuevaHora} onChange={(e) => setNuevaHora(e.target.value)} className="browser-default">
+            <option value="" disabled selected>Seleccione una nueva hora</option>
+            <option value="09:00 AM">09:00 AM</option>
+            <option value="10:00 AM">10:00 AM</option>
+            <option value="11:00 AM">11:00 AM</option>
+            <option value="12:00 PM">12:00 PM</option>
+            <option value="01:00 PM">01:00 PM</option>
+            <option value="02:00 PM">02:00 PM</option>
+            <option value="03:00 PM">03:00 PM</option>
+            <option value="04:00 PM">04:00 PM</option>
+          </select>
+        </div>
+        <div className="modal-footer">
+          <button className="btn black" onClick={handleReprogramar}>Confirmar Reprogramación</button>
+          <button className="btn btn-flat modal-close">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,317 @@
+import React, { useState } from 'react';
+import Calendar from 'react-calendar'; // Importar el componente de calendario
+import 'react-calendar/dist/Calendar.css'; // Estilos del calendario
+
+const mockStaffData = [
+    { id: 1, name: 'Juan Pérez', role: 'Coordinador' },
+    { id: 2, name: 'María López', role: 'Monitor' },
+    { id: 3, name: 'Carlos Sánchez', role: 'Administrador de Monitorías' },
+    { id: 4, name: 'Ana Martínez', role: 'Monitor' },
+];
+
+const initialSchedules = [
+    { id: 1, date: '2024-10-20', time: '10:00', staff: 'Juan Pérez' },
+    { id: 2, date: '2024-10-22', time: '11:00', staff: 'María López' },
+];
+
+export default function Monitorias() {
+    const [selectedStaff, setSelectedStaff] = useState('');
+    const [selectedRole, setSelectedRole] = useState('');
+    const [questions, setQuestions] = useState([]);
+    const [selectedQuestions, setSelectedQuestions] = useState([]);
+    const [scheduleDate, setScheduleDate] = useState(new Date());
+    const [scheduleTime, setScheduleTime] = useState('');
+    const [staffInfo, setStaffInfo] = useState({ name: '', email: '', phone: '' });
+    const [taskAssignment, setTaskAssignment] = useState('');
+    const [showReports, setShowReports] = useState(false);
+    const [schedules, setSchedules] = useState(initialSchedules);
+    const [selectedSchedule, setSelectedSchedule] = useState(null);
+    const [actionType, setActionType] = useState('');
+
+    const assignRole = () => {
+        if (window.confirm(`¿Estás seguro de que deseas asignar el rol ${selectedRole} a ${selectedStaff}?`)) {
+            alert(`Rol ${selectedRole} asignado a ${selectedStaff} correctamente.`);
+        } else {
+            alert('Asignación de rol cancelada.');
+        }
+    };
+
+    const removeQuestion = () => {
+        if (selectedQuestions.length > 0) {
+            if (window.confirm(`¿Estás seguro de que deseas eliminar las preguntas seleccionadas?`)) {
+                alert(`Preguntas eliminadas: ${selectedQuestions.join(', ')}`);
+            } else {
+                alert('Eliminación de preguntas cancelada.');
+            }
+        } else {
+            alert('Por favor, selecciona al menos una pregunta para eliminar.');
+        }
+    };
+
+    const viewSchedule = () => {
+        alert('Aquí se mostrará el calendario o la lista de horarios.');
+    };
+
+    const addSchedule = () => {
+        if (scheduleTime) {
+            const newSchedule = {
+                id: schedules.length + 1,
+                date: scheduleDate.toISOString().split('T')[0],
+                time: scheduleTime,
+                staff: selectedStaff,
+            };
+            setSchedules([...schedules, newSchedule]);
+            alert(`Horario "${scheduleTime}" agregado para ${selectedStaff} el ${scheduleDate.toLocaleDateString()}.`);
+            setScheduleTime('');
+            setSelectedStaff('');
+            setScheduleDate(new Date());
+        } else {
+            alert('Por favor, ingresa un horario válido.');
+        }
+    };
+
+    const modifyStaff = () => {
+        if (staffInfo.name || staffInfo.email || staffInfo.phone) {
+            alert('Información del staff modificada correctamente.');
+            setStaffInfo({ name: '', email: '', phone: '' });
+        } else {
+            alert('Por favor, proporciona nueva información.');
+        }
+    };
+
+    const reviewReports = () => {
+        setShowReports(!showReports);
+    };
+
+    const handleScheduleSelect = (schedule) => {
+        setSelectedSchedule(schedule);
+        setScheduleDate(new Date(schedule.date));
+        setScheduleTime(schedule.time);
+        setActionType('modify'); // Para reprogramar
+    };
+
+    const handleDeleteSchedule = () => {
+        if (selectedSchedule) {
+            if (window.confirm(`¿Estás seguro de que deseas eliminar el horario para ${selectedSchedule.staff} el ${selectedSchedule.date} a las ${selectedSchedule.time}?`)) {
+                setSchedules(schedules.filter(s => s.id !== selectedSchedule.id));
+                alert('Horario eliminado correctamente.');
+                setSelectedSchedule(null);
+            } else {
+                alert('Eliminación de horario cancelada.');
+            }
+        } else {
+            alert('Por favor, selecciona un horario para eliminar.');
+        }
+    };
+
+    const handleReprogramSchedule = () => {
+        if (selectedSchedule) {
+            const updatedSchedules = schedules.map(s =>
+                s.id === selectedSchedule.id
+                    ? { ...s, date: scheduleDate.toISOString().split('T')[0], time: scheduleTime }
+                    : s
+            );
+            setSchedules(updatedSchedules);
+            alert('Horario reprogramado correctamente.');
+            setSelectedSchedule(null);
+            setScheduleTime('');
+            setScheduleDate(new Date());
+        } else {
+            alert('Por favor, selecciona un horario para reprogramar.');
+        }
+    };
+
+    // Estilos en línea
+    const containerStyle = {
+        marginTop: '5rem',
+        backgroundColor: 'white',
+        color: 'black',
+        padding: '20px',
+        borderRadius: '0.5rem',
+        boxShadow: '0 0.125rem 0.25rem rgba(0, 0, 0, 0.1)',
+    };
+
+    const cardStyle = {
+        border: '1px solid #000',
+        borderRadius: '0.5rem',
+        marginBottom: '1.5rem',
+        backgroundColor: 'white',
+    };
+
+    const cardHeaderStyle = {
+        backgroundColor: '#f8f9fa',
+        color: 'black',
+        padding: '0.75rem 1.25rem',
+        borderTopLeftRadius: '0.5rem',
+        borderTopRightRadius: '0.5rem',
+        fontWeight: 'bold',
+    };
+
+    const buttonStyle = {
+        marginTop: '1rem',
+        border: '1px solid black',
+        backgroundColor: 'black',
+        color: 'white',
+    };
+
+    const inputStyle = {
+        marginBottom: '0.75rem',
+    };
+
+    return (
+        <div style={containerStyle} className="container">
+            <h1 className="text-center mb-4">Monitorias</h1>
+
+            <div style={cardStyle} className="card">
+                <div style={cardHeaderStyle} className="card-header">
+                    <h2>Asignar Rol</h2>
+                </div>
+                <div className="card-body">
+                    <div className="mb-3">
+                        <select 
+                            className="form-select" 
+                            value={selectedStaff} 
+                            onChange={e => setSelectedStaff(e.target.value)}
+                        >
+                            <option value="">Seleccionar personal</option>
+                            {mockStaffData.map(staff => (
+                                <option key={staff.id} value={staff.name}>{staff.name}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="mb-3">
+                        <select 
+                            className="form-select" 
+                            value={selectedRole} 
+                            onChange={e => setSelectedRole(e.target.value)}
+                        >
+                            <option value="">Seleccionar rol</option>
+                            <option value="Coordinador">Coordinador</option>
+                            <option value="Monitor">Monitor</option>
+                            <option value="Administrador de Monitorías">Administrador de Monitorías</option>
+                        </select>
+                    </div>
+                    <div className="mb-3">
+                        <textarea 
+                            className="form-control" 
+                            placeholder="Asignar tareas" 
+                            value={taskAssignment} 
+                            onChange={e => setTaskAssignment(e.target.value)} 
+                            rows="3" 
+                        />
+                    </div>
+                    <button style={buttonStyle} className="btn" onClick={assignRole}>Asignar Rol</button>
+                </div>
+            </div>
+
+            <div style={cardStyle} className="card">
+                <div style={cardHeaderStyle} className="card-header">
+                    <h2>Eliminar Pregunta</h2>
+                </div>
+                <div className="card-body">
+                    <div className="mb-3">
+                        <select 
+                            multiple 
+                            className="form-select" 
+                            value={selectedQuestions} 
+                            onChange={e => setSelectedQuestions(Array.from(e.target.selectedOptions, option => option.value))}
+                        >
+                            <option value="Pregunta 1">Pregunta 1</option>
+                            <option value="Pregunta 2">Pregunta 2</option>
+                        </select>
+                    </div>
+                    <button style={buttonStyle} className="btn" onClick={removeQuestion}>Eliminar Pregunta</button>
+                </div>
+            </div>
+
+            <div style={cardStyle} className="card">
+                <div style={cardHeaderStyle} className="card-header">
+                    <h2>Ver Horarios</h2>
+                </div>
+                <div className="card-body">
+                    <Calendar 
+                        onChange={setScheduleDate} 
+                        value={scheduleDate} 
+                    />
+                    <h4>Monitorías Programadas:</h4>
+                    <ul>
+                        {schedules.map(schedule => (
+                            <li key={schedule.id}>
+                                {schedule.date} a las {schedule.time} - {schedule.staff}
+                                <button style={buttonStyle} onClick={() => handleScheduleSelect(schedule)}>Modificar</button>
+                            </li>
+                        ))}
+                    </ul>
+                    {selectedSchedule && (
+                        <div>
+                            <h5>Modificar Horario</h5>
+                            <input 
+                                type="time" 
+                                className="form-control" 
+                                value={scheduleTime} 
+                                onChange={e => setScheduleTime(e.target.value)} 
+                                style={inputStyle}
+                            />
+                            <button style={buttonStyle} className="btn" onClick={handleReprogramSchedule}>Reprogramar</button>
+                            <button style={buttonStyle} className="btn" onClick={handleDeleteSchedule}>Eliminar</button>
+                        </div>
+                    )}
+                    <h5>Agregar Nuevo Horario</h5>
+                    <input 
+                        type="time" 
+                        className="form-control" 
+                        value={scheduleTime} 
+                        onChange={e => setScheduleTime(e.target.value)} 
+                        style={inputStyle}
+                    />
+                    <button style={buttonStyle} className="btn" onClick={addSchedule}>Agregar Horario</button>
+                </div>
+            </div>
+
+            <div style={cardStyle} className="card">
+                <div style={cardHeaderStyle} className="card-header">
+                    <h2>Modificar Información del Staff</h2>
+                </div>
+                <div className="card-body">
+                    <input 
+                        type="text" 
+                        className="form-control" 
+                        placeholder="Nombre del Staff" 
+                        value={staffInfo.name} 
+                        onChange={e => setStaffInfo({ ...staffInfo, name: e.target.value })} 
+                        style={inputStyle}
+                    />
+                    <input 
+                        type="email" 
+                        className="form-control" 
+                        placeholder="Email" 
+                        value={staffInfo.email} 
+                        onChange={e => setStaffInfo({ ...staffInfo, email: e.target.value })} 
+                        style={inputStyle}
+                    />
+                    <input 
+                        type="tel" 
+                        className="form-control" 
+                        placeholder="Teléfono" 
+                        value={staffInfo.phone} 
+                        onChange={e => setStaffInfo({ ...staffInfo, phone: e.target.value })} 
+                        style={inputStyle}
+                    />
+                    <button style={buttonStyle} className="btn" onClick={modifyStaff}>Modificar Información</button>
+                </div>
+            </div>
+
+            <div style={cardStyle} className="card">
+                <div style={cardHeaderStyle} className="card-header">
+                    <h2>Informes</h2>
+                </div>
+                <div className="card-body">
+                    <button style={buttonStyle} className="btn" onClick={reviewReports}>
+                        {showReports ? 'Ocultar Informes' : 'Mostrar Informes'}
+                    </button>
+                    {showReports && <p>Aquí se mostrarán los informes.</p>}
+                </div>
+            </div>
+        </div>
+    );
+}

@@ -1,0 +1,327 @@
+import React, { useState } from 'react';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import { Modal, Button, Form } from 'react-bootstrap';
+import FullCalendar from '@fullcalendar/react';
+import dayGridPlugin from '@fullcalendar/daygrid';
+
+export default function Monitorias() {
+    const [showModal, setShowModal] = useState(false);
+    const [showDetails, setShowDetails] = useState(false);
+    const [showInasistenciaModal, setShowInasistenciaModal] = useState(false);
+    const [showReporteModal, setShowReporteModal] = useState(false);
+    const [estudiante, setEstudiante] = useState('');
+    const [nuevaFecha, setNuevaFecha] = useState('');
+    const [historial, setHistorial] = useState([]);
+    const [eventoSeleccionado, setEventoSeleccionado] = useState(null);
+    const [inasistenciaData, setInasistenciaData] = useState({ nombre: '', fecha: '', hora: '', ubicacion: '' });
+    const [reporteData, setReporteData] = useState({ nombres: '', fecha: '', hora: '', ubicacion: '', excusa: '' });
+
+    const handleShow = () => setShowModal(true);
+    const handleClose = () => {
+        setEstudiante('');
+        setNuevaFecha('');
+        setShowModal(false);
+    };
+
+    const handleReprogramar = (e) => {
+        e.preventDefault();
+        alert(`Solicitud de reprogramación para ${estudiante} enviada para la nueva fecha: ${nuevaFecha}`);
+        setHistorial(prev => [...prev, { fecha: nuevaFecha, estudiante, estado: 'Reprogramada' }]);
+        handleClose();
+    };
+
+    const handleCancelar = () => {
+        alert('Solicitud de cancelación enviada al Administrador.');
+        setHistorial(prev => [...prev, { fecha: nuevaFecha, estudiante, estado: 'Cancelada' }]);
+    };
+
+    const handleOpenInasistenciaModal = () => setShowInasistenciaModal(true);
+    const handleCloseInasistenciaModal = () => setShowInasistenciaModal(false);
+
+    const handleReportarInasistencia = (e) => {
+        e.preventDefault();
+        const { nombre, fecha, hora, ubicacion } = inasistenciaData;
+        setHistorial(prev => [...prev, { fecha, estudiante: nombre, estado: 'No Asistió', hora, ubicacion }]);
+        alert('Inasistencia reportada.');
+        handleCloseInasistenciaModal();
+        setInasistenciaData({ nombre: '', fecha: '', hora: '', ubicacion: '' });
+    };
+
+    const handleOpenReporteModal = () => setShowReporteModal(true);
+    const handleCloseReporteModal = () => {
+        setReporteData({ nombres: '', fecha: '', hora: '', ubicacion: '', excusa: '' });
+        setShowReporteModal(false);
+    };
+
+    const handleEnviarReporte = (e) => {
+        e.preventDefault();
+        const { nombres, fecha, hora, ubicacion, excusa } = reporteData;
+        setHistorial(prev => [...prev, { fecha, estudiante: nombres, estado: 'Asistió', hora, ubicacion }]);
+        alert('Reporte de asistencias enviado.');
+        handleCloseReporteModal();
+    };
+
+    const handleConsultarHistorial = () => {
+        const nuevoHistorial = [
+            { fecha: '2024-09-25', estudiante: 'Estudiante A', estado: 'Asistió' },
+            { fecha: '2024-09-26', estudiante: 'Estudiante B', estado: 'No Asistió' }
+        ];
+        setHistorial(nuevoHistorial);
+    };
+
+    const handleEventoClick = (info) => {
+        setEventoSeleccionado(info.event);
+        setShowDetails(true);
+    };
+
+    const handleCloseDetails = () => {
+        setShowDetails(false);
+        setEventoSeleccionado(null);
+    };
+
+    const eventos = [
+        {
+            title: 'Monitoría de Matemáticas',
+            date: '2024-09-25',
+            description: 'Resolución de ejercicios de cálculo.',
+            hora: '10:00 AM',
+            ubicacion: 'Salón 101'
+        },
+        {
+            title: 'Monitoría de Física',
+            date: '2024-09-26',
+            description: 'Conceptos de mecánica clásica.',
+            hora: '2:00 PM',
+            ubicacion: 'Salón 202'
+        },
+        {
+            title: 'Monitoría de Química',
+            date: '2024-09-27',
+            description: 'Revisión de fórmulas y reacciones.',
+            hora: '1:00 PM',
+            ubicacion: 'Salón 303'
+        },
+        {
+            title: 'Monitoría de Programación',
+            date: '2024-09-28',
+            description: 'Introducción a estructuras de datos.',
+            hora: '11:00 AM',
+            ubicacion: 'Salón 404'
+        }
+    ];
+
+    return (
+        <div className="container">
+            <h1 className="fade-in">Monitor de Monitorías Académicas</h1>
+
+            <div className="row mb-4">
+                {['Reprogramar Monitoría', 'Cancelar Monitoría', 'Reportar Inasistencia', 'Enviar Reporte de Asistencias'].map((title, index) => (
+                    <div className="col-md-3" key={index}>
+                        <div className="card fade-in">
+                            <div className="card-body text-center">
+                                <h5 className="card-title">{title}</h5>
+                                <Button variant="primary" onClick={title === 'Reprogramar Monitoría' ? handleShow : title === 'Cancelar Monitoría' ? handleCancelar : title === 'Reportar Inasistencia' ? handleOpenInasistenciaModal : handleOpenReporteModal}>
+                                    {title.includes('Reprogramar') || title.includes('Cancelar') ? 'Solicitar' : 'Reportar'}
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            <h3 className="fade-in">Calendario de Monitorías</h3>
+            <FullCalendar
+                plugins={[dayGridPlugin]}
+                initialView="dayGridMonth"
+                events={eventos.map(evento => ({
+                    title: evento.title,
+                    date: evento.date,
+                    extendedProps: {
+                        description: evento.description,
+                        hora: evento.hora,
+                        ubicacion: evento.ubicacion
+                    }
+                }))}
+                eventClick={handleEventoClick}
+            />
+
+            <h3 className="fade-in">Historial de Monitorías</h3>
+            <table className="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Estudiante</th>
+                        <th>Estado</th>
+                        <th>Hora</th>
+                        <th>Ubicación</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {historial.map((item, index) => (
+                        <tr key={index}>
+                            <td>{item.fecha}</td>
+                            <td>{item.estudiante}</td>
+                            <td>{item.estado}</td>
+                            <td>{item.hora || 'N/A'}</td>
+                            <td>{item.ubicacion || 'N/A'}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+
+            <Modal show={showModal} onHide={handleClose}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Reprogramar Monitoría</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form onSubmit={handleReprogramar}>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Nombre del Estudiante</Form.Label>
+                            <Form.Control
+                                type="text"
+                                value={estudiante}
+                                onChange={(e) => setEstudiante(e.target.value)}
+                                required
+                            />
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Nueva Fecha y Hora</Form.Label>
+                            <Form.Control
+                                type="datetime-local"
+                                value={nuevaFecha}
+                                onChange={(e) => setNuevaFecha(e.target.value)}
+                                required
+                            />
+                        </Form.Group>
+                        <Button variant="primary" type="submit">Solicitar</Button>
+                    </Form>
+                </Modal.Body>
+            </Modal>
+
+            <Modal show={showInasistenciaModal} onHide={handleCloseInasistenciaModal}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Reportar Inasistencia</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form onSubmit={handleReportarInasistencia}>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Nombre del Estudiante</Form.Label>
+                            <Form.Control
+                                type="text"
+                                value={inasistenciaData.nombre}
+                                onChange={(e) => setInasistenciaData({ ...inasistenciaData, nombre: e.target.value })}
+                                required
+                            />
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Fecha</Form.Label>
+                            <Form.Control
+                                type="date"
+                                value={inasistenciaData.fecha}
+                                onChange={(e) => setInasistenciaData({ ...inasistenciaData, fecha: e.target.value })}
+                                required
+                            />
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Hora</Form.Label>
+                            <Form.Control
+                                type="time"
+                                value={inasistenciaData.hora}
+                                onChange={(e) => setInasistenciaData({ ...inasistenciaData, hora: e.target.value })}
+                                required
+                            />
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Ubicación</Form.Label>
+                            <Form.Control
+                                type="text"
+                                value={inasistenciaData.ubicacion}
+                                onChange={(e) => setInasistenciaData({ ...inasistenciaData, ubicacion: e.target.value })}
+                                required
+                            />
+                        </Form.Group>
+                        <Button variant="primary" type="submit">Reportar</Button>
+                    </Form>
+                </Modal.Body>
+            </Modal>
+
+            <Modal show={showReporteModal} onHide={handleCloseReporteModal}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Enviar Reporte de Asistencias</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form onSubmit={handleEnviarReporte}>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Nombres de los Estudiantes</Form.Label>
+                            <Form.Control
+                                type="text"
+                                value={reporteData.nombres}
+                                onChange={(e) => setReporteData({ ...reporteData, nombres: e.target.value })}
+                                required
+                            />
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Fecha</Form.Label>
+                            <Form.Control
+                                type="date"
+                                value={reporteData.fecha}
+                                onChange={(e) => setReporteData({ ...reporteData, fecha: e.target.value })}
+                                required
+                            />
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Hora</Form.Label>
+                            <Form.Control
+                                type="time"
+                                value={reporteData.hora}
+                                onChange={(e) => setReporteData({ ...reporteData, hora: e.target.value })}
+                                required
+                            />
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Ubicación</Form.Label>
+                            <Form.Control
+                                type="text"
+                                value={reporteData.ubicacion}
+                                onChange={(e) => setReporteData({ ...reporteData, ubicacion: e.target.value })}
+                                required
+                            />
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Excusa</Form.Label>
+                            <Form.Control as="select" value={reporteData.excusa} onChange={(e) => setReporteData({ ...reporteData, excusa: e.target.value })} required>
+                                <option value="">Seleccionar Excusa</option>
+                                <option value="Excusa Médica">Excusa Médica</option>
+                                <option value="Familiar/Personal">Familiar/Personal</option>
+                                <option value="No entrego excusa">No entrego excusa</option>
+                            </Form.Control>
+                        </Form.Group>
+                        <Button variant="primary" type="submit">Reportar</Button>
+                    </Form>
+                </Modal.Body>
+            </Modal>
+
+            <Modal show={showDetails} onHide={handleCloseDetails}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Detalles de la Monitoría</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    {eventoSeleccionado && (
+                        <div>
+                            <h5>{eventoSeleccionado.title}</h5>
+                            <p><strong>Descripción:</strong> {eventoSeleccionado.extendedProps.description}</p>
+                            <p><strong>Fecha:</strong> {eventoSeleccionado.start.toLocaleDateString()}</p>
+                            <p><strong>Hora:</strong> {eventoSeleccionado.extendedProps.hora}</p>
+                            <p><strong>Ubicación:</strong> {eventoSeleccionado.extendedProps.ubicacion}</p>
+                        </div>
+                    )}
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={handleCloseDetails}>
+                        Cerrar
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+        </div>
+    );
+}
