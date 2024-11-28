@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from "react-router-dom";
-import useAuth from "../auth/useAuth";
+import { createUserWithEmailAndPassword, getAuth } from "firebase/auth"; 
+import { getFirestore, doc, setDoc } from "firebase/firestore"; // Importa Firestore
 import routes from "../helpers/routes";
 
 export default function Register() {
@@ -11,7 +12,8 @@ export default function Register() {
   const [idNumber, setIdNumber] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
-  const { register } = useAuth(); // Asumiendo que tienes un hook de registro
+  const auth = getAuth(); // Obtén la instancia de autenticación
+  const db = getFirestore(); // Instancia de Firestore
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,17 +25,28 @@ export default function Register() {
       return;
     }
 
-    // Aquí podrías agregar la lógica para registrar al usuario
+    // Aquí crear el usuario en Firebase Auth
     try {
-      await register(firstName, lastName, email, password, idNumber);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user; // Información del usuario registrado
+
+      // Después de crear el usuario, guardar sus datos en Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        firstName,
+        lastName,
+        email: user.email, // Guardar el correo
+        idNumber,
+        role: "regular", // Si necesitas guardar un rol o alguna otra información
+      });
+
       alert('Registro exitoso');
-      navigate(routes.monitorias); // Redirigir a otra página después del registro
+      navigate(routes.monitorias); // Redirigir al usuario después del registro
     } catch (error) {
+      console.error("Error en el registro:", error.message);
       setErrorMessage('Error en el registro, por favor intenta nuevamente');
     }
   };
 
-  // Estilos para la presentación
   const containerStyle = {
     display: 'flex',
     justifyContent: 'center',
@@ -82,6 +95,10 @@ export default function Register() {
     color: '#333',
   };
 
+  const logoStyle = {
+    marginBottom: '20px',
+  };
+
   const errorStyle = {
     color: 'red',
     marginBottom: '10px',
@@ -89,8 +106,9 @@ export default function Register() {
 
   return (
     <div style={containerStyle}>
-      <h1 style={{ color: 'white' }}>Registro</h1>
+      <img src="/img/imglogin.png" alt="Logo" style={logoStyle} />
       <form style={formStyle} onSubmit={handleSubmit}>
+        <h1>Registro</h1>
         {errorMessage && <p style={errorStyle}>{errorMessage}</p>}
         <div>
           <label style={labelStyle}>Nombre</label>
