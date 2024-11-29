@@ -1,0 +1,14 @@
+/* Navigation.css */
+.navbar-custom {
+  background-color: #2eac08 !important; /* Color de fondo azul */
+  font-size: 12px;
+}
+
+.navbar-custom .nav-link {
+  font-weight: bold;
+  transition: color 0.2s ease; /* Transición suave para el color */
+}
+
+.navbar-custom .nav-link:hover {
+  color: #ffc107 !important; /* Color amarillo al pasar el mouse */
+}

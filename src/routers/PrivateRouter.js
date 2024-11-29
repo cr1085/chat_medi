@@ -5,7 +5,7 @@ import routes from "../helpers/routes";
 export default function PrivateRouter({ element, rolesAllowed }) {
     const location= useLocation()
     // console.log(location);
-    const { hasRole, isLogged} = useAuth();
+    let { hasRole, isLogged} = useAuth();
 
     
     // Redirigir si el rol no está permitido
@@ -13,7 +13,7 @@ export default function PrivateRouter({ element, rolesAllowed }) {
         return <Navigate to={routes.home} />;
     }
     // Redirigir a login si no hay usuario
-    if (!isLogged()) {
+    if (!isLogged) {
         return <Navigate to={routes.login} state={{from:location}} />;
     }
 

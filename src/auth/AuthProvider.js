@@ -8,6 +8,7 @@ export const AuthContext = createContext();
 export default function AuthProvider({ children }) {
     const navigate = useNavigate();
     const [user, setUser] = useState(null);
+    let [isLogged, setIsLogged] = useState(false);
     const auth = getAuth();
 
     useEffect(() => {
@@ -31,6 +32,7 @@ export default function AuthProvider({ children }) {
     const login = async (email, password, fromLocation) => {
         try {
             await signInWithEmailAndPassword(auth, email, password);
+            setIsLogged(true);
             if (fromLocation) {
                 navigate(fromLocation, { replace: true });
             }
@@ -43,12 +45,13 @@ export default function AuthProvider({ children }) {
         try {
             await signOut(auth);
             setUser(null);
+            setIsLogged(false);
         } catch (error) {
             console.error("Error al cerrar sesión:", error.message);
         }
     };
 
-    const isLogged = () => !!user;
+     isLogged = !!user;
     const hasRole = (role) => user?.role === role;
 
     const contextValue = {

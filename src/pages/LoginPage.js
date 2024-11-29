@@ -20,6 +20,8 @@ export default function LoginPage() {
     }
     try {
       await login(email, password, location.state?.from);
+      const fromLocation = location.state ?.from ?.pathname || routes.home; // Redirige a la ruta de origen o a la home
+      navigate(fromLocation);
       navigate(routes.monitorias);
     } catch (err) {
       setError('Correo o contraseña incorrectos');
